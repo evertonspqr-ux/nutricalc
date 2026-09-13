@@ -1,0 +1,1868 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Organize refeições, registre alimentos e gere um plano alimentar educativo em PDF, diretamente no navegador."
+    />
+    <title>NutriCalc — organização alimentar educativa</title>
+    <link rel="stylesheet" href="nutricalc.css" />
+    <link rel="stylesheet" href="nutricalc-design.css" />
+    <script
+      defer
+      src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+      integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      .hidden {
+        display: none;
+      }
+      .tab-active {
+        border-bottom: 3px solid #059669;
+        color: #047857;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body class="bg-slate-50 text-slate-800 min-h-screen font-sans">
+    <header class="app-header sticky top-0 z-30 bg-emerald-700 text-white">
+      <div
+        class="max-w-6xl mx-auto p-4 flex flex-wrap gap-3 justify-between items-center"
+      >
+        <button
+          id="brandHomeButton"
+          class="text-xl font-bold inline-flex items-center gap-2"
+          aria-label="Ir para o plano alimentar"
+        >
+          <span class="brand-mark" aria-hidden="true">N</span
+          ><span>NutriCalc</span>
+        </button>
+        <nav
+          class="flex flex-wrap gap-2 text-sm"
+          aria-label="Navegação principal"
+        >
+          <button
+            data-section-nav="planner"
+            aria-current="page"
+
+            class="px-3 py-2 hover:bg-emerald-800 rounded"
+          >
+            Plano e diário</button
+          ><button
+            data-section-nav="profile"
+
+            class="px-3 py-2 hover:bg-emerald-800 rounded"
+          >
+            Perfil</button
+          ><button
+            data-section-nav="catalog"
+
+            class="px-3 py-2 hover:bg-emerald-800 rounded"
+          >
+            Meus alimentos</button
+          ><button
+            data-section-nav="tmb"
+
+            class="px-3 py-2 hover:bg-emerald-800 rounded"
+          >
+            Calculadora TMB
+          </button>
+        </nav>
+      </div>
+    </header>
+    <main class="app-main max-w-6xl mx-auto p-4 md:p-8">
+      <div
+        class="notice bg-amber-50 border border-amber-200 p-4 rounded-lg text-sm mb-6"
+      >
+        <strong>Uso educativo, não é prescrição.</strong> O NutriCalc oferece
+        estimativas e organização alimentar, não substitui nutricionista nem
+        avaliação clínica. Perfil e plano ficam neste navegador até você
+        apagá-los. O app não envia esses dados para um servidor próprio. A
+        biblioteca de PDF é carregada do Cloudflare ao abrir a página; o OCR
+        carrega sua biblioteca externa apenas quando você escolhe usar esse recurso.
+      </div>
+
+      <section id="section-profile" class="hidden max-w-3xl">
+        <div class="bg-white rounded-2xl border p-6 shadow-sm">
+          <h1 class="text-2xl font-bold mb-1">Perfil e objetivos</h1>
+          <p class="text-sm text-slate-500 mb-6">
+            Preencha dados de uma pessoa adulta para receber estimativas
+            educativas.
+          </p>
+          <form id="profileForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label class="text-sm font-medium"
+              >Sexo para a fórmula<select
+                id="pSex"
+                class="field w-full mt-1 p-2 border rounded"
+              >
+                <option value="female">Feminino</option>
+                <option value="male">Masculino</option>
+              </select></label
+            >
+            <label class="text-sm font-medium"
+              >Idade (anos)<input
+                id="pAge"
+                required
+                min="1"
+                max="120"
+                type="number"
+                class="w-full mt-1 p-2 border rounded"
+            /></label>
+            <label class="text-sm font-medium"
+              >Peso (kg)<input
+                id="pWeight"
+                required
+                min="20"
+                max="400"
+                step="0.1"
+                type="number"
+                class="w-full mt-1 p-2 border rounded"
+            /></label>
+            <label class="text-sm font-medium"
+              >Altura (cm)<input
+                id="pHeight"
+                required
+                min="80"
+                max="250"
+                step="0.1"
+                type="number"
+                class="w-full mt-1 p-2 border rounded"
+            /></label>
+            <label class="text-sm font-medium"
+              >Atividade<select
+                id="pActivity"
+                class="w-full mt-1 p-2 border rounded"
+              >
+                <option value="1.2">Sedentária</option>
+                <option value="1.375">Levemente ativa</option>
+                <option value="1.55" selected>Moderadamente ativa</option>
+                <option value="1.725">Muito ativa</option>
+                <option value="1.9">Extra ativa</option>
+              </select></label
+            >
+            <label class="text-sm font-medium"
+              >Objetivo<select
+                id="pGoal"
+                class="w-full mt-1 p-2 border rounded"
+              >
+                <option value="maintain">Manutenção</option>
+                <option value="lose">Redução de peso</option>
+                <option value="gain">Ganho de peso</option>
+              </select></label
+            >
+            <label class="text-sm font-medium"
+              >Refeições por dia<select
+                id="pMealCount"
+                class="w-full mt-1 p-2 border rounded"
+              >
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5" selected>5</option>
+                <option value="6">6</option>
+              </select></label
+            >
+            <label class="text-sm font-medium"
+              >Preferências alimentares<input
+                id="pPreferences"
+                placeholder="Ex.: vegetariana, sem lactose"
+                class="w-full mt-1 p-2 border rounded"
+            /></label>
+            <aside
+              class="md:col-span-2 safety-advisory"
+              aria-label="Aviso de segurança"
+            >
+              <strong
+                >Antes de gerar: não use este planejador sem acompanhamento
+                profissional</strong
+              >
+              se você estiver em gestação ou lactação, tiver transtorno
+              alimentar, alergia grave, condição renal/hepática ou outra
+              condição clínica que exija conduta individual.
+            </aside>
+            <button
+              class="md:col-span-2 bg-emerald-700 text-white font-bold p-3 rounded hover:bg-emerald-700"
+            >
+              Salvar perfil e calcular estimativas
+            </button>
+          </form>
+          <div id="profileNotice" class="hidden mt-5 p-4 rounded"></div>
+          <div
+            id="estimateCard"
+            class="hidden mt-5 grid grid-cols-2 md:grid-cols-4 gap-3"
+          ></div>
+        </div>
+      </section>
+
+      <section id="section-planner">
+        <div
+          id="guardrail"
+          class="hidden bg-red-50 border border-red-200 p-4 mb-5 rounded text-red-900"
+        >
+          <strong>É necessária avaliação profissional.</strong> Para sua
+          segurança, o NutriCalc não gera plano automático para menores de 18
+          anos. Em casos de gestação/lactação, transtorno alimentar, alergia
+          grave ou condição renal/hepática, não utilize este planejador sem
+          nutricionista e equipe de saúde.
+        </div>
+        <div class="flex flex-wrap items-end justify-between gap-4 mb-5">
+          <div>
+            <h1 class="text-2xl font-bold">Plano alimentar educativo</h1>
+            <p id="plannerSubtitle" class="text-sm text-slate-500">
+              Salve seu perfil para ver suas metas educativas.
+            </p>
+          </div>
+          <button
+            id="pdfButton"
+            class="bg-slate-800 text-white p-3 rounded hover:bg-slate-900"
+          >
+            Baixar PDF
+          </button>
+        </div>
+        <div
+          class="rounded-2xl border border-emerald-100 bg-emerald-50 p-4 mb-4"
+        >
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="font-bold text-emerald-950">Organizador semanal</h2>
+              <p class="text-sm text-emerald-900">
+                Selecione um dia e uma refeição. Cada registro fica salvo
+                somente neste navegador.
+              </p>
+            </div>
+            <div
+              id="dayTabs"
+              class="flex flex-wrap gap-2"
+              role="tablist"
+              aria-label="Dia da semana"
+            ></div>
+          </div>
+          <button
+            id="editMealNamesButton"
+            type="button"
+            class="mt-4 border border-emerald-300 bg-white text-emerald-900 font-semibold px-3 py-2 rounded"
+          >
+            Editar nomes das refeições
+          </button>
+          <form
+            id="mealNameForm"
+            class="hidden mt-4 pt-4 border-t border-emerald-200"
+          >
+            <div
+              class="flex flex-wrap items-baseline justify-between gap-2 mb-3"
+            >
+              <div>
+                <h3 class="font-semibold text-emerald-950">
+                  Nomes das refeições
+                </h3>
+                <p class="text-sm text-emerald-900">
+                  Personalize os nomes que aparecem no seu plano e no PDF.
+                </p>
+              </div>
+              <button
+                id="closeMealNamesButton"
+                type="button"
+                class="text-sm text-emerald-900 underline"
+              >
+                Fechar
+              </button>
+            </div>
+            <div
+              id="mealNameFields"
+              class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"
+            ></div>
+            <button
+              class="mt-4 bg-emerald-700 text-white font-bold px-4 py-2 rounded"
+            >
+              Salvar nomes
+            </button>
+          </form>
+        </div>
+        <div
+          class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6"
+          id="dailyCards"
+        ></div>
+        <div class="bg-white border rounded-2xl shadow-sm overflow-hidden">
+          <div
+            id="mealTabs"
+            class="flex overflow-x-auto bg-slate-50 border-b"
+            role="tablist"
+            aria-label="Refeição"
+          ></div>
+          <div class="p-5">
+            <div class="grid md:grid-cols-4 gap-3 bg-slate-50 rounded p-4 mb-5">
+              <label class="md:col-span-2 text-sm"
+                >Buscar alimento<input
+                  id="foodSearch"
+                  placeholder="Digite para filtrar"
+                  class="w-full mt-1 p-2 border rounded" /></label
+              ><label class="text-sm"
+                >Alimento<select
+                  id="foodSelect"
+                  class="w-full mt-1 p-2 border rounded"
+                ></select></label
+              ><label class="text-sm"
+                >Quantidade (g)<input
+                  id="foodQty"
+                  type="number"
+                  min="1"
+                  value="100"
+                  class="w-full mt-1 p-2 border rounded" /></label
+              ><button
+                id="addMealItemButton"
+                class="md:col-span-4 bg-emerald-700 text-white font-bold p-2 rounded"
+              >
+                Adicionar à refeição
+              </button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="text-left border-b">
+                  <tr>
+                    <th scope="col" class="p-2">Alimento</th>
+                    <th scope="col" class="p-2">Qtd.</th>
+                    <th scope="col" class="p-2">kcal</th>
+                    <th scope="col" class="p-2">Prot.</th>
+                    <th scope="col" class="p-2">Carb.</th>
+                    <th scope="col" class="p-2">Gord.</th>
+                    <th scope="col" class="p-2">Fibra</th>
+                    <th scope="col"><span class="sr-only">Ações</span></th>
+                  </tr>
+                </thead>
+                <tbody id="mealBody"></tbody>
+                <tfoot id="mealFooter" class="font-bold bg-emerald-50"></tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="section-catalog" class="hidden">
+        <div class="bg-white border rounded-2xl p-6 shadow-sm">
+          <div class="flex flex-wrap justify-between gap-3 mb-5">
+            <div>
+              <h1 class="text-2xl font-bold">Catálogo próprio</h1>
+              <p class="text-sm text-slate-500">
+                Confira o rótulo. Os valores são convertidos e armazenados por
+                100 g.
+              </p>
+            </div>
+            <div class="flex gap-2">
+              <button id="exportCatalogButton" class="border p-2 rounded">
+                Exportar JSON</button
+              ><label class="border p-2 rounded cursor-pointer"
+                >Importar JSON<input
+                  id="importInput"
+                  type="file"
+                  accept="application/json"
+                  class="hidden"
+              /></label>
+            </div>
+          </div>
+          <div class="mb-4 border border-emerald-200 bg-emerald-50 p-4 rounded">
+            <h2 class="font-semibold">Ler foto do rótulo</h2>
+            <p class="text-sm text-emerald-900 mt-1">
+              A foto é processada neste navegador para sugerir os campos abaixo.
+              Ela não é salva no catálogo nem enviada a um servidor. Confira e
+              confirme os valores antes de salvar.
+            </p>
+            <div class="flex flex-wrap items-center gap-3 mt-3">
+              <label class="border bg-white p-2 rounded cursor-pointer"
+                >Escolher ou fotografar rótulo<input
+                  id="labelPhotoInput"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  capture="environment"
+                  class="hidden" /></label
+              ><button
+                id="runOcrButton"
+                type="button"
+                disabled
+                class="bg-emerald-700 disabled:bg-slate-400 text-white font-semibold p-2 rounded"
+              >
+                Ler texto da foto
+              </button>
+            </div>
+            <img
+              id="labelPhotoPreview"
+              src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+              class="hidden mt-3 max-h-52 rounded border"
+              alt="Prévia da foto do rótulo selecionada"
+            />
+            <p
+              id="ocrStatus"
+              role="status"
+              class="text-sm mt-2 text-emerald-900"
+            ></p>
+          </div>
+          <form
+            id="foodForm"
+            class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-50 p-4 rounded"
+          >
+            <input id="editFoodId" type="hidden" /><label
+              class="col-span-2 text-sm"
+              >Nome<input
+                id="fName"
+                required
+                class="w-full mt-1 p-2 border rounded" /></label
+            ><label class="text-sm"
+              >Porção do rótulo (g)<input
+                id="fPortion"
+                required
+                min="1"
+                step="0.1"
+                type="number"
+                class="w-full mt-1 p-2 border rounded" /></label
+            ><label class="text-sm"
+              >Calorias<input
+                id="fKcal"
+                required
+                min="0"
+                step="0.1"
+                type="number"
+                class="w-full mt-1 p-2 border rounded" /></label
+            ><label class="text-sm"
+              >Carboidratos (g)<input
+                id="fCarb"
+                required
+                min="0"
+                step="0.1"
+                type="number"
+                class="w-full mt-1 p-2 border rounded" /></label
+            ><label class="text-sm"
+              >Proteínas (g)<input
+                id="fProt"
+                required
+                min="0"
+                step="0.1"
+                type="number"
+                class="w-full mt-1 p-2 border rounded" /></label
+            ><label class="text-sm"
+              >Gorduras (g)<input
+                id="fFat"
+                required
+                min="0"
+                step="0.1"
+                type="number"
+                class="w-full mt-1 p-2 border rounded" /></label
+            ><label class="text-sm"
+              >Fibras (g)<input
+                id="fFiber"
+                required
+                min="0"
+                step="0.1"
+                type="number"
+                value="0"
+                class="w-full mt-1 p-2 border rounded" /></label
+            ><label class="text-sm"
+              >Sódio (mg)<input
+                id="fSodium"
+                min="0"
+                step="0.1"
+                type="number"
+                value="0"
+                class="w-full mt-1 p-2 border rounded" /></label
+            ><button
+              class="col-span-2 md:col-span-4 bg-emerald-700 text-white font-bold p-2 rounded"
+            >
+              Salvar alimento
+            </button>
+          </form>
+          <input
+            id="catalogSearch"
+            placeholder="Pesquisar no catálogo"
+            class="w-full my-4 p-2 border rounded"
+          />
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="text-left border-b">
+                <tr>
+                  <th class="p-2">Nome</th>
+                  <th>kcal</th>
+                  <th>Carb.</th>
+                  <th>Prot.</th>
+                  <th>Gord.</th>
+                  <th>Fibra</th>
+                  <th>Sódio</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="catalogBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="section-tmb" class="hidden max-w-2xl">
+        <div class="bg-white border rounded-2xl p-6 shadow-sm">
+          <h1 class="text-2xl font-bold mb-2">Calculadora TMB</h1>
+          <p class="text-sm text-slate-500 mb-5">
+            Mantida para cálculos rápidos; use o Perfil para salvar estimativas
+            e montar o plano.
+          </p>
+          <div class="grid sm:grid-cols-2 gap-3">
+            <label
+              >Sexo<select id="tmbGender" class="w-full p-2 border rounded">
+                <option value="female">Feminino</option>
+                <option value="male">Masculino</option>
+              </select></label
+            ><label
+              >Idade<input
+                id="tmbAge"
+                type="number"
+                class="w-full p-2 border rounded" /></label
+            ><label
+              >Peso (kg)<input
+                id="tmbWeight"
+                type="number"
+                class="w-full p-2 border rounded" /></label
+            ><label
+              >Altura (cm)<input
+                id="tmbHeight"
+                type="number"
+                class="w-full p-2 border rounded" /></label
+            ><label
+              >Atividade<select
+                id="tmbActivity"
+                class="w-full p-2 border rounded"
+              >
+                <option value="1.2">Sedentária</option>
+                <option value="1.375">Leve</option>
+                <option value="1.55" selected>Moderada</option>
+                <option value="1.725">Muito ativa</option>
+                <option value="1.9">Extra ativa</option>
+              </select></label
+            ><label
+              >Objetivo<select id="tmbGoal" class="w-full p-2 border rounded">
+                <option value="maintain">Manutenção</option>
+                <option value="lose">Redução</option>
+                <option value="gain">Ganho</option>
+              </select></label
+            >
+          </div>
+          <button
+            id="calculateTmbButton"
+            class="w-full mt-5 bg-emerald-700 text-white font-bold p-3 rounded"
+          >
+            Calcular
+          </button>
+          <div id="tmbResult" class="hidden mt-5 bg-emerald-50 p-4 rounded">
+            <strong id="resTmbValue"></strong>
+            <p id="resTmbDesc"></p>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="app-footer border-t border-slate-200 bg-white">
+      <div
+        class="max-w-6xl mx-auto px-4 py-6 md:px-8 flex flex-col gap-2 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <p>
+          <strong class="text-slate-800">NutriCalc — por Atlas</strong> ·
+          organização alimentar educativa.
+        </p>
+        <div class="flex flex-col gap-2 sm:items-end">
+          <p>
+            Suporte e sugestões:
+            <a
+              class="font-semibold text-emerald-800 underline underline-offset-2"
+              href="mailto:atlasforcomsoc@gmail.com?subject=NutriCalc%20-%20suporte"
+              >atlasforcomsoc@gmail.com</a
+            >
+          </p>
+          <button
+            id="clearDataButton"
+            type="button"
+            class="text-left text-xs font-semibold text-red-700 underline underline-offset-2 sm:text-right"
+          >
+            Apagar dados salvos neste navegador
+          </button>
+          <p class="text-xs text-slate-500 sm:text-right">
+            PDFs e backups JSON já baixados precisam ser apagados manualmente.
+          </p>
+        </div>
+      </div>
+    </footer>
+    <script>
+      const baseFoods = {
+        arroz: {
+          name: "Arroz branco cozido",
+          kcal: 130,
+          carb: 28.2,
+          prot: 2.7,
+          fat: 0.3,
+          fiber: 1.6,
+        },
+        frango: {
+          name: "Frango grelhado",
+          kcal: 165,
+          carb: 0,
+          prot: 31,
+          fat: 3.6,
+          fiber: 0,
+        },
+        ovo: {
+          name: "Ovo cozido",
+          kcal: 155,
+          carb: 1.1,
+          prot: 13,
+          fat: 11,
+          fiber: 0,
+        },
+        banana: {
+          name: "Banana",
+          kcal: 89,
+          carb: 22.8,
+          prot: 1.1,
+          fat: 0.3,
+          fiber: 2.6,
+        },
+        aveia: {
+          name: "Aveia em flocos",
+          kcal: 389,
+          carb: 66,
+          prot: 16.9,
+          fat: 6.9,
+          fiber: 10.6,
+        },
+        feijao: {
+          name: "Feijão preto cozido",
+          kcal: 132,
+          carb: 23.7,
+          prot: 8.9,
+          fat: 0.5,
+          fiber: 8.4,
+        },
+        azeite: {
+          name: "Azeite de oliva",
+          kcal: 884,
+          carb: 0,
+          prot: 0,
+          fat: 100,
+          fiber: 0,
+        },
+      };
+      const defaultMealLabels = [
+        "Café da manhã",
+        "Lanche da manhã",
+        "Almoço",
+        "Lanche da tarde",
+        "Jantar",
+        "Ceia",
+      ];
+      const weekDays = [
+        "Segunda",
+        "Terça",
+        "Quarta",
+        "Quinta",
+        "Sexta",
+        "Sábado",
+        "Domingo",
+      ];
+      function normalizeMealNames(names) {
+        return defaultMealLabels.map((fallback, index) => {
+          const name = Array.isArray(names)
+            ? String(names[index] || "").trim()
+            : "";
+          return name || fallback;
+        });
+      }
+      const blankDay = () => defaultMealLabels.map(() => []);
+      const defaultState = {
+        profile: {},
+        customFoods: [],
+        mealNames: [...defaultMealLabels],
+        weeklyMeals: weekDays.map(blankDay),
+        activeDay: 0,
+        activeMeal: 0,
+        tmb: 0,
+      };
+      let state = structuredClone(defaultState);
+      const round = (n) => Math.round((Number(n) || 0) * 100) / 100;
+      function normalizeFood(f) {
+        const x = 100 / Number(f.portionG);
+        return {
+          name: String(f.name).trim(),
+          kcal: round(f.kcal * x),
+          carb: round(f.carb * x),
+          prot: round(f.prot * x),
+          fat: round(f.fat * x),
+          fiber: round(f.fiber * x),
+          sodium: round((Number(f.sodium) || 0) * x),
+        };
+      }
+      function sanitizeCustomFood(raw, fallbackId) {
+        if (!raw || typeof raw !== "object") return null;
+        const name = String(raw.name || "").trim();
+        const limits = {
+          kcal: 1000,
+          carb: 100,
+          prot: 100,
+          fat: 100,
+          fiber: 100,
+          sodium: 5000,
+        };
+        if (!name || name.length > 120) return null;
+        const values = {};
+        for (const [field, max] of Object.entries(limits)) {
+          const value = Number(raw[field]);
+          if (!Number.isFinite(value) || value < 0 || value > max) return null;
+          values[field] = round(value);
+        }
+        const id = /^[a-z0-9_-]{3,80}$/i.test(String(raw.id || ""))
+          ? String(raw.id)
+          : fallbackId;
+        return { id, name, ...values };
+      }
+      const MAX_IMPORT_BYTES = 1024 * 1024;
+      const MAX_STORED_STATE_BYTES = 1536 * 1024;
+      const MAX_CUSTOM_FOODS = 500;
+      function sanitizeCatalogImport(raw) {
+        if (!raw || typeof raw !== "object" || !Array.isArray(raw.foods) || raw.foods.length > MAX_CUSTOM_FOODS) return null;
+        const stamp = Date.now();
+        const foods = raw.foods.map((food, index) =>
+          sanitizeCustomFood(
+            { ...food, id: `custom-${stamp}-${index}-${Math.random().toString(36).slice(2, 8)}` },
+            `custom-${stamp}-${index}`,
+          ),
+        );
+        return foods.every(Boolean) ? foods : null;
+      }
+      function sanitizeMealItem(raw, fallbackId) {
+        if (!raw || typeof raw !== "object") return null;
+        const name = String(raw.name || "").trim();
+        const limits = { qty: 5000, kcal: 10000, carb: 1000, prot: 1000, fat: 1000, fiber: 1000 };
+        if (!name || name.length > 120) return null;
+        const values = {};
+        for (const [field, max] of Object.entries(limits)) {
+          const value = Number(raw[field]);
+          if (!Number.isFinite(value) || value < 0 || value > max) return null;
+          values[field] = round(value);
+        }
+        const id = /^[a-z0-9_-]{3,80}$/i.test(String(raw.id || ""))
+          ? String(raw.id)
+          : fallbackId;
+        const foodId = String(raw.foodId || "").slice(0, 80);
+        return { id, name, ...values, ...(foodId ? { foodId } : {}) };
+      }
+      function sanitizeProfile(raw) {
+        if (!raw || typeof raw !== "object") return {};
+        const age = Number(raw.age),
+          weight = Number(raw.weight),
+          height = Number(raw.height),
+          activity = Number(raw.activity),
+          mealCount = Number(raw.mealCount);
+        if (
+          !Number.isFinite(age) ||
+          !Number.isFinite(weight) ||
+          !Number.isFinite(height)
+        )
+          return {};
+        return {
+          sex: raw.sex === "male" ? "male" : "female",
+          age: Math.min(120, Math.max(1, age)),
+          weight: Math.min(400, Math.max(20, weight)),
+          height: Math.min(250, Math.max(80, height)),
+          activity: [1.2, 1.375, 1.55, 1.725, 1.9].includes(activity)
+            ? activity
+            : 1.55,
+          goal: ["maintain", "lose", "gain"].includes(raw.goal)
+            ? raw.goal
+            : "maintain",
+          mealCount: [3, 4, 5, 6].includes(mealCount) ? mealCount : 5,
+          preferences: String(raw.preferences || "").slice(0, 250),
+        };
+      }
+      function requiresProfessionalReview(p) {
+        return Number(p.age) < 18;
+      }
+      function goalLabel(goal) {
+        return (
+          {
+            maintain: "Manutenção",
+            lose: "Redução de peso",
+            gain: "Ganho de peso",
+          }[goal] || "Não informado"
+        );
+      }
+      function estimatePlan(p) {
+        const bmr =
+          (p.sex === "male" ? 5 : -161) +
+          10 * Number(p.weight) +
+          6.25 * Number(p.height) -
+          5 * Number(p.age);
+        let kcal = bmr * Number(p.activity);
+        if (p.goal === "lose") kcal -= 500;
+        if (p.goal === "gain") kcal += 500;
+        kcal = Math.max(1200, Math.round(kcal));
+        return {
+          kcal,
+          macros: {
+            protein: Math.round((kcal * 0.2) / 4),
+            carbs: Math.round((kcal * 0.5) / 4),
+            fat: Math.round((kcal * 0.3) / 9),
+          },
+        };
+      }
+      function parseLabelNumber(value) {
+        return Number(String(value).replace(/\./g, "").replace(",", "."));
+      }
+      function parseNutritionLabel(text) {
+        const source = String(text || "")
+          .replace(/\r/g, " ")
+          .replace(/[|]/g, " ");
+        const read = (pattern) => {
+          const match = source.match(pattern);
+          return match ? parseLabelNumber(match[1]) : undefined;
+        };
+        const row = (labels, unit = "g") => {
+          const label = new RegExp(`(?:${labels.join("|")})`, "i");
+          const match = source.match(label);
+          if (!match || match.index === undefined) return undefined;
+          const afterLabel = source.slice(match.index + match[0].length);
+          const nextRow = afterLabel.search(
+            /\n\s*(?:valor\s+energ[eé]tico|energia|carboidratos?|hidratos?\s+de\s+carbono|prote[ií]nas?|gorduras?\s+totais?|fibras?\s+alimentar(?:es)?|s[oó]dio|por[cç][aã]o)/i,
+          );
+          const segment = (
+            nextRow >= 0 ? afterLabel.slice(0, nextRow) : afterLabel
+          ).slice(0, 42);
+          const values = [
+            ...segment.matchAll(/(\d+(?:[.,]\d+)?)(?:\s*(mg|kcal|g)\b)?/gi),
+          ].map((item) => ({
+            value: parseLabelNumber(item[1]),
+            unit: (item[2] || "").toLowerCase(),
+            decimal: /[.,]/.test(item[1]),
+          }));
+          const withExpectedUnit = values.find((item) => item.unit === unit);
+          if (withExpectedUnit) return withExpectedUnit.value;
+          if (values.length === 1) return values[0].value;
+          if (values[0]?.decimal) return values[0].value;
+          return undefined;
+        };
+        return {
+          portionG: read(/por[cç][aã]o\s*(?:de)?\s*([\d.,]+)\s*g\b/i),
+          kcal: read(
+            /(?:valor\s+energ[eé]tico|energia)\s*[:\-]?\s*([\d.,]+)\s*(?:kcal|calorias?)/i,
+          ),
+          carb: row(["carboidratos?", "hidratos?\\s+de\\s+carbono"]),
+          prot: row(["prote[ií]nas?"]),
+          fat: row(["gorduras?\\s+totais?"]),
+          fiber: row(["fibras?\\s+alimentar(?:es)?"]),
+          sodium: row(["s[oó]dio"], "mg"),
+        };
+      }
+      function migrateWeeklyPlanner(saved = {}) {
+        const sanitizeDay = (day, dayIndex) => {
+          const meals = Array.isArray(day) ? day.slice(0, defaultMealLabels.length) : [];
+          while (meals.length < defaultMealLabels.length) meals.push([]);
+          return meals.map((meal, mealIndex) =>
+            (Array.isArray(meal) ? meal : [])
+              .slice(0, 30)
+              .map((item, itemIndex) => sanitizeMealItem(item, `meal-${dayIndex}-${mealIndex}-${itemIndex}`))
+              .filter(Boolean),
+          );
+        };
+        const validWeek =
+          Array.isArray(saved.weeklyMeals) && saved.weeklyMeals.length === 7;
+        const weekly = validWeek
+          ? saved.weeklyMeals.map(sanitizeDay)
+          : weekDays.map((_, dayIndex) => sanitizeDay([], dayIndex));
+        if (!validWeek && Array.isArray(saved.meals)) weekly[0] = sanitizeDay(saved.meals, 0);
+        return {
+          ...saved,
+          mealNames: normalizeMealNames(saved.mealNames),
+          weeklyMeals: weekly,
+          activeDay:
+            Number.isInteger(saved.activeDay) &&
+            saved.activeDay >= 0 &&
+            saved.activeDay < 7
+              ? saved.activeDay
+              : 0,
+          activeMeal:
+            Number.isInteger(saved.activeMeal) &&
+            saved.activeMeal >= 0 &&
+            saved.activeMeal < defaultMealLabels.length
+              ? saved.activeMeal
+              : 0,
+        };
+      }
+      function buildWeeklyShoppingList(weeklyMeals) {
+        const items = {};
+        (weeklyMeals || []).flat(2).forEach((i) => {
+          if (i && i.name)
+            items[i.name] = (items[i.name] || 0) + (Number(i.qty) || 0);
+        });
+        return Object.entries(items)
+          .map(([name, qty]) => ({ name, qty: round(qty) }))
+          .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+      }
+      function buildWeeklyOverview(weeklyMeals) {
+        return weekDays.map((_, index) => {
+          const items = ((weeklyMeals || [])[index] || []).flat();
+          const total = totals(items);
+          return {
+            items: items.length,
+            kcal: round(total.kcal),
+            prot: round(total.prot),
+            carb: round(total.carb),
+          };
+        });
+      }
+      window.NutriCalcHelpers = {
+        normalizeFood,
+        sanitizeCustomFood,
+        sanitizeCatalogImport,
+        sanitizeProfile,
+        normalizeMealNames,
+        requiresProfessionalReview,
+        goalLabel,
+        estimatePlan,
+        parseNutritionLabel,
+        migrateWeeklyPlanner,
+        buildWeeklyShoppingList,
+        buildWeeklyOverview,
+      };
+      let selectedLabelPhoto = null,
+        selectedLabelPhotoUrl = "";
+      function loadExternalScript(id, src, integrity = "") {
+        if (window[id]) return Promise.resolve();
+        const existing = document.querySelector(`script[data-library="${id}"]`);
+        if (existing)
+          return new Promise((resolve, reject) => {
+            existing.addEventListener("load", resolve, { once: true });
+            existing.addEventListener("error", reject, { once: true });
+          });
+        return new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = src;
+          script.async = true;
+          script.dataset.library = id;
+          if (integrity) {
+            script.integrity = integrity;
+            script.crossOrigin = "anonymous";
+          }
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
+      function setOcrStatus(message, isError = false) {
+        const status = document.getElementById("ocrStatus");
+        status.textContent = message;
+        status.className = `text-sm mt-2 ${isError ? "text-red-700" : "text-emerald-900"}`;
+      }
+      const MAX_OCR_IMAGE_BYTES = 5 * 1024 * 1024;
+      const MAX_OCR_IMAGE_PIXELS = 16 * 1024 * 1024;
+      const MAX_OCR_IMAGE_SIDE = 1800;
+      const OCR_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+      function getOcrImagePlan(width, height) {
+        if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 || width * height > MAX_OCR_IMAGE_PIXELS) return null;
+        const scale = Math.min(1, MAX_OCR_IMAGE_SIDE / Math.max(width, height));
+        return { width: Math.round(width * scale), height: Math.round(height * scale) };
+      }
+      window.NutriCalcHelpers.getOcrImagePlan = getOcrImagePlan;
+      function selectLabelPhoto(event) {
+        const file = event.target.files && event.target.files[0];
+        const preview = document.getElementById("labelPhotoPreview"),
+          button = document.getElementById("runOcrButton");
+        if (selectedLabelPhotoUrl) URL.revokeObjectURL(selectedLabelPhotoUrl);
+        selectedLabelPhoto = file || null;
+        selectedLabelPhotoUrl = "";
+        preview.classList.add("hidden");
+        button.disabled = !file;
+        if (!file) {
+          setOcrStatus("");
+          return;
+        }
+        if (!OCR_IMAGE_TYPES.has(file.type)) {
+          selectedLabelPhoto = null;
+          button.disabled = true;
+          setOcrStatus("Use uma foto JPG, PNG ou WebP do rótulo.", true);
+          return;
+        }
+        if (file.size > MAX_OCR_IMAGE_BYTES) {
+          selectedLabelPhoto = null;
+          button.disabled = true;
+          event.target.value = "";
+          setOcrStatus("A foto excede 5 MB. Escolha uma imagem menor e nítida.", true);
+          return;
+        }
+        selectedLabelPhotoUrl = URL.createObjectURL(file);
+        preview.src = selectedLabelPhotoUrl;
+        preview.classList.remove("hidden");
+        setOcrStatus(
+          "Foto selecionada. Leia o texto e confira os campos antes de salvar.",
+        );
+      }
+      function prepareLabelImage(file) {
+        return new Promise((resolve, reject) => {
+          const image = new Image(),
+            url = URL.createObjectURL(file);
+          image.onload = () => {
+            const plan = getOcrImagePlan(image.naturalWidth, image.naturalHeight);
+            if (!plan) {
+              URL.revokeObjectURL(url);
+              reject(Error("Imagem excede o limite de dimensões para OCR"));
+              return;
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = plan.width;
+            canvas.height = plan.height;
+            const context = canvas.getContext("2d");
+            context.fillStyle = "#fff";
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.filter = "grayscale(1) contrast(1.8) brightness(1.08)";
+            context.drawImage(image, 0, 0, canvas.width, canvas.height);
+            URL.revokeObjectURL(url);
+            resolve(canvas);
+          };
+          image.onerror = () => {
+            URL.revokeObjectURL(url);
+            reject(Error("Imagem inválida"));
+          };
+          image.src = url;
+        });
+      }
+      function applyOcrFields(values) {
+        const fields = {
+          portionG: "fPortion",
+          kcal: "fKcal",
+          carb: "fCarb",
+          prot: "fProt",
+          fat: "fFat",
+          fiber: "fFiber",
+          sodium: "fSodium",
+        };
+        let count = 0;
+        Object.entries(fields).forEach(([key, id]) => {
+          if (Number.isFinite(values[key])) {
+            document.getElementById(id).value = values[key];
+            count++;
+          }
+        });
+        return count;
+      }
+      async function runLabelOcr() {
+        if (!selectedLabelPhoto)
+          return setOcrStatus(
+            "Selecione uma foto do rótulo antes de continuar.",
+            true,
+          );
+        const button = document.getElementById("runOcrButton");
+        button.disabled = true;
+        setOcrStatus("Preparando leitura local…");
+        try {
+          if (!window.Tesseract)
+            await loadExternalScript(
+              "tesseract",
+              "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js",
+              "sha384-GJqSu7vueQ9qN0E9yLPb3Wtpd7OrgK8KmYzC8T1IysG1bcvxvIO4qtYR/D3A991F",
+            );
+          if (!window.Tesseract) throw Error("OCR indisponível");
+          setOcrStatus("Ajustando contraste da foto…");
+          const preparedImage = await prepareLabelImage(selectedLabelPhoto);
+          setOcrStatus("Lendo a foto localmente…");
+          const result = await window.Tesseract.recognize(
+            preparedImage,
+            "por",
+            {
+              logger: (m) => {
+                if (m.status === "recognizing text")
+                  setOcrStatus(
+                    `Lendo a foto localmente… ${Math.round((m.progress || 0) * 100)}%`,
+                  );
+              },
+            },
+          );
+          const count = applyOcrFields(parseNutritionLabel(result.data.text));
+          setOcrStatus(
+            count
+              ? `Leitura concluída: ${count} campo(s) sugerido(s). Confira todos os valores e preencha o nome antes de salvar.`
+              : "Não identificamos os campos do rótulo. Preencha-os manualmente e confira o rótulo.",
+            !count,
+          );
+        } catch (error) {
+          console.error("Erro ao ler rótulo", error);
+          setOcrStatus(
+            "Não foi possível ler esta foto. Tente uma imagem mais nítida ou preencha manualmente.",
+            true,
+          );
+        } finally {
+          button.disabled = !selectedLabelPhoto;
+        }
+      }
+      function clearLabelPhoto() {
+        if (selectedLabelPhotoUrl) URL.revokeObjectURL(selectedLabelPhotoUrl);
+        selectedLabelPhoto = null;
+        selectedLabelPhotoUrl = "";
+        const input = document.getElementById("labelPhotoInput"),
+          preview = document.getElementById("labelPhotoPreview");
+        input.value = "";
+        preview.removeAttribute("src");
+        preview.classList.add("hidden");
+        document.getElementById("runOcrButton").disabled = true;
+        setOcrStatus("");
+      }
+      function clearAllLocalData() {
+        if (
+          !confirm(
+            "Apagar perfil, plano, alimentos próprios e estimativas deste navegador? Esta ação não pode ser desfeita. PDFs e backups JSON já baixados não serão apagados automaticamente.",
+          )
+        )
+          return;
+        localStorage.removeItem("nutriCalcV1");
+        clearLabelPhoto();
+        state = structuredClone(defaultState);
+        fillProfile();
+        renderDays();
+        renderTabs();
+        renderFoodOptions();
+        renderMeal();
+        renderDaily();
+        renderCatalog();
+        alert("Os dados do NutriCalc foram apagados deste navegador.");
+      }
+      function save() {
+        localStorage.setItem("nutriCalcV1", JSON.stringify(state));
+      }
+      function load() {
+        try {
+          const raw = localStorage.getItem("nutriCalcV1");
+          if (!raw) return;
+          if (raw.length > MAX_STORED_STATE_BYTES) {
+            localStorage.removeItem("nutriCalcV1");
+            console.warn("Dados locais removidos por excederem o limite de segurança.");
+            return;
+          }
+          const saved = JSON.parse(raw);
+          if (saved) {
+            const migrated = migrateWeeklyPlanner(saved);
+            state = {
+              ...structuredClone(defaultState),
+              ...migrated,
+              profile: sanitizeProfile(saved.profile),
+              customFoods: Array.isArray(saved.customFoods)
+                ? saved.customFoods
+                    .slice(0, MAX_CUSTOM_FOODS)
+                    .map((food, index) =>
+                      sanitizeCustomFood(food, `custom-${Date.now()}-${index}`),
+                    )
+                    .filter(Boolean)
+                : [],
+            };
+            save();
+          }
+        } catch (e) {
+          console.warn("Dados locais inválidos", e);
+        }
+      }
+      function showSection(name) {
+        document
+          .querySelectorAll("main section")
+          .forEach((s) => s.classList.add("hidden"));
+        document.getElementById("section-" + name).classList.remove("hidden");
+        document.querySelectorAll("[data-section-nav]").forEach((button) => {
+          if (button.dataset.sectionNav === name)
+            button.setAttribute("aria-current", "page");
+          else button.removeAttribute("aria-current");
+        });
+      }
+      function foodMap() {
+        return {
+          ...baseFoods,
+          ...Object.fromEntries(state.customFoods.map((f) => [f.id, f])),
+        };
+      }
+      function escapeHtml(s) {
+        const d = document.createElement("div");
+        d.textContent = s;
+        return d.innerHTML;
+      }
+      function currentDayMeals() {
+        return state.weeklyMeals[state.activeDay] || blankDay();
+      }
+      function getMealNames() {
+        return normalizeMealNames(state.mealNames);
+      }
+      function currentMeals() {
+        const n = Number(state.profile.mealCount) || 5;
+        return currentDayMeals().slice(0, n);
+      }
+      function totals(items) {
+        return items.reduce(
+          (a, i) => {
+            ["qty", "kcal", "carb", "prot", "fat", "fiber"].forEach(
+              (k) => (a[k] += Number(i[k]) || 0),
+            );
+            return a;
+          },
+          { qty: 0, kcal: 0, carb: 0, prot: 0, fat: 0, fiber: 0 },
+        );
+      }
+      function renderFoodOptions() {
+        const q = document.getElementById("foodSearch").value.toLowerCase();
+        const select = document.getElementById("foodSelect");
+        const foods = Object.entries(foodMap()).filter(([, f]) =>
+          f.name.toLowerCase().includes(q),
+        );
+        select.innerHTML = foods.length
+          ? ""
+          : '<option value="">Nenhum alimento encontrado</option>';
+        foods.forEach(([id, f]) => {
+          const o = document.createElement("option");
+          o.value = id;
+          o.textContent = `${f.name} (${f.kcal} kcal/100g)`;
+          select.appendChild(o);
+        });
+      }
+      function renderDays() {
+        const c = document.getElementById("dayTabs");
+        c.innerHTML = "";
+        weekDays.forEach((day, i) => {
+          const b = document.createElement("button");
+          b.textContent = day;
+          b.type = "button";
+          b.setAttribute("role", "tab");
+          b.setAttribute("aria-selected", String(state.activeDay === i));
+          b.className =
+            "px-3 py-2 rounded text-sm " +
+            (state.activeDay === i
+              ? "bg-emerald-700 text-white font-bold"
+              : "bg-white border text-emerald-900");
+          b.onclick = () => {
+            state.activeDay = i;
+            renderDays();
+            renderTabs();
+            renderMeal();
+            renderDaily();
+            save();
+          };
+          c.appendChild(b);
+        });
+      }
+      function renderTabs() {
+        const c = document.getElementById("mealTabs"),
+          names = getMealNames();
+        c.innerHTML = "";
+        currentMeals().forEach((_, i) => {
+          const b = document.createElement("button");
+          b.textContent = names[i];
+          b.type = "button";
+          b.setAttribute("role", "tab");
+          b.setAttribute("aria-selected", String(state.activeMeal === i));
+          b.className =
+            "px-4 py-3 whitespace-nowrap " +
+            (state.activeMeal === i ? "tab-active" : "text-slate-500");
+          b.onclick = () => {
+            state.activeMeal = i;
+            renderTabs();
+            renderMeal();
+            save();
+          };
+          c.appendChild(b);
+        });
+        if (state.activeMeal >= currentMeals().length) state.activeMeal = 0;
+      }
+      function renderMealNameFields() {
+        const fields = document.getElementById("mealNameFields"),
+          names = getMealNames();
+        fields.innerHTML = names
+          .map(
+            (name, index) =>
+              `<label class="text-sm font-medium">Refeição ${index + 1}<input data-meal-name value="${escapeHtml(name)}" maxlength="40" class="w-full mt-1 p-2 border rounded"></label>`,
+          )
+          .join("");
+      }
+      function toggleMealNameEditor() {
+        const form = document.getElementById("mealNameForm"),
+          willOpen = form.classList.contains("hidden");
+        form.classList.toggle("hidden");
+        if (willOpen) renderMealNameFields();
+      }
+      function saveMealNames(event) {
+        event.preventDefault();
+        const fields = [
+          ...document
+            .getElementById("mealNameFields")
+            .querySelectorAll("[data-meal-name]"),
+        ];
+        state.mealNames = normalizeMealNames(
+          fields.map((field) => field.value),
+        );
+        save();
+        renderTabs();
+        document.getElementById("mealNameForm").classList.add("hidden");
+      }
+      function renderMeal() {
+        const items = currentDayMeals()[state.activeMeal] || [];
+        const body = document.getElementById("mealBody");
+        body.innerHTML = items.length
+          ? items
+              .map(
+                (i, index) =>
+                  `<tr class="border-b"><th scope="row" class="p-2">${escapeHtml(i.name)}</th><td class="p-2">${i.qty}g</td><td class="p-2">${i.kcal}</td><td class="p-2">${i.prot}g</td><td class="p-2">${i.carb}g</td><td class="p-2">${i.fat}g</td><td class="p-2">${i.fiber}g</td><td><button class="text-red-600 p-2" data-remove-index="${index}" aria-label="Remover">×</button></td></tr>`,
+              )
+              .join("")
+          : '<tr><td colspan="8" class="p-8 text-center text-slate-600">Sem refeições registradas nesta refeição.</td></tr>';
+        body.querySelectorAll("[data-remove-index]").forEach((button) => {
+          button.addEventListener("click", () => {
+            const item = items[Number(button.dataset.removeIndex)];
+            if (item) removeItem(item.id);
+          });
+        });
+        const t = totals(items);
+        document.getElementById("mealFooter").innerHTML =
+          `<tr><th scope="row" class="p-2">TOTAL</th><td>${round(t.qty)}g</td><td>${round(t.kcal)}</td><td>${round(t.prot)}g</td><td>${round(t.carb)}g</td><td>${round(t.fat)}g</td><td>${round(t.fiber)}g</td><td></td></tr>`;
+      }
+      function renderDaily() {
+        const t = totals(currentMeals().flat());
+        const e =
+          Object.keys(state.profile).length &&
+          !requiresProfessionalReview(state.profile)
+            ? estimatePlan(state.profile)
+            : null;
+        const cards = [
+          [
+            "Calorias",
+            `${round(t.kcal)} kcal`,
+            e ? `meta ${e.kcal} kcal` : "sem meta",
+          ],
+          [
+            "Proteínas",
+            `${round(t.prot)} g`,
+            e ? `meta ${e.macros.protein} g` : "",
+          ],
+          [
+            "Carboidratos",
+            `${round(t.carb)} g`,
+            e ? `meta ${e.macros.carbs} g` : "",
+          ],
+          ["Gorduras", `${round(t.fat)} g`, e ? `meta ${e.macros.fat} g` : ""],
+          ["Fibras", `${round(t.fiber)} g`, ""],
+        ];
+        document.getElementById("dailyCards").innerHTML = cards
+          .map(
+            (c) =>
+              `<div class="bg-white border rounded-xl p-3"><p class="text-xs uppercase text-slate-500">${c[0]}</p><strong class="text-lg">${c[1]}</strong><p class="text-xs text-slate-600">${c[2]}</p></div>`,
+          )
+          .join("");
+        document.getElementById("plannerSubtitle").textContent = e
+          ? `${weekDays[state.activeDay]}: ${state.profile.preferences ? "Preferências: " + state.profile.preferences + ". " : ""}Metas estimadas para organização educativa.`
+          : "Salve um perfil adulto para ver metas educativas.";
+        document
+          .getElementById("guardrail")
+          .classList.toggle(
+            "hidden",
+            !requiresProfessionalReview(state.profile),
+          );
+        document.getElementById("pdfButton").disabled =
+          requiresProfessionalReview(state.profile);
+        document
+          .getElementById("pdfButton")
+          .classList.toggle(
+            "opacity-50",
+            requiresProfessionalReview(state.profile),
+          );
+      }
+      function addItem() {
+        if (requiresProfessionalReview(state.profile)) {
+          alert(
+            "A geração automática está bloqueada: procure avaliação profissional.",
+          );
+          return;
+        }
+        const id = document.getElementById("foodSelect").value,
+          qty = Number(document.getElementById("foodQty").value),
+          f = foodMap()[id];
+        if (!f || !qty || qty <= 0)
+          return alert("Selecione um alimento e uma quantidade válida.");
+        const r = qty / 100;
+        currentDayMeals()[state.activeMeal].push({
+          id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+          foodId: id,
+          name: f.name,
+          qty: round(qty),
+          kcal: round(f.kcal * r),
+          carb: round(f.carb * r),
+          prot: round(f.prot * r),
+          fat: round(f.fat * r),
+          fiber: round(f.fiber * r),
+        });
+        save();
+        renderMeal();
+        renderDaily();
+      }
+      function removeItem(id) {
+        currentDayMeals()[state.activeMeal] = currentDayMeals()[
+          state.activeMeal
+        ].filter((i) => i.id !== id);
+        save();
+        renderMeal();
+        renderDaily();
+      }
+      function saveProfile(e) {
+        e.preventDefault();
+        const p = {
+          sex: pSex.value,
+          age: Number(pAge.value),
+          weight: Number(pWeight.value),
+          height: Number(pHeight.value),
+          activity: Number(pActivity.value),
+          goal: pGoal.value,
+          mealCount: Number(pMealCount.value),
+          preferences: pPreferences.value.trim(),
+        };
+        state.profile = p;
+        const box = document.getElementById("profileNotice");
+        if (requiresProfessionalReview(p)) {
+          box.className = "mt-5 p-4 rounded bg-red-50 text-red-900";
+          box.textContent =
+            "Não geramos plano automático neste caso. Procure nutricionista e equipe de saúde para avaliação individual.";
+        } else {
+          const e = estimatePlan(p);
+          box.className = "mt-5 p-4 rounded bg-emerald-50 text-emerald-900";
+          box.textContent =
+            "Perfil salvo localmente. Suas estimativas educativas foram atualizadas.";
+          document.getElementById("estimateCard").classList.remove("hidden");
+          document.getElementById("estimateCard").innerHTML =
+            `<div><b>${e.kcal}</b><br><small>kcal/dia</small></div><div><b>${e.macros.protein}g</b><br><small>proteínas</small></div><div><b>${e.macros.carbs}g</b><br><small>carboidratos</small></div><div><b>${e.macros.fat}g</b><br><small>gorduras</small></div>`;
+        }
+        box.classList.remove("hidden");
+        save();
+        renderTabs();
+        renderMeal();
+        renderDaily();
+        showSection("planner");
+      }
+      function renderCatalog() {
+        const q = document.getElementById("catalogSearch").value.toLowerCase();
+        const foods = state.customFoods.filter((f) =>
+          f.name.toLowerCase().includes(q),
+        );
+        const body = document.getElementById("catalogBody");
+        body.innerHTML =
+          foods
+            .map(
+              (f, index) =>
+                `<tr class="border-b"><td class="p-2">${escapeHtml(f.name)}</td><td>${f.kcal}</td><td>${f.carb}g</td><td>${f.prot}g</td><td>${f.fat}g</td><td>${f.fiber}g</td><td>${f.sodium}mg</td><td><button class="text-emerald-700 p-1" data-edit-index="${index}">Editar</button><button class="text-red-600 p-1" data-delete-index="${index}">Apagar</button></td></tr>`,
+            )
+            .join("") ||
+          '<tr><td colspan="8" class="p-5 text-slate-600">Nenhum alimento próprio cadastrado.</td></tr>';
+        body.querySelectorAll("[data-edit-index]").forEach((button) => {
+          button.addEventListener("click", () => {
+            const food = foods[Number(button.dataset.editIndex)];
+            if (food) editFood(food.id);
+          });
+        });
+        body.querySelectorAll("[data-delete-index]").forEach((button) => {
+          button.addEventListener("click", () => {
+            const food = foods[Number(button.dataset.deleteIndex)];
+            if (food) deleteFood(food.id);
+          });
+        });
+      }
+      function saveFood(e) {
+        e.preventDefault();
+        const raw = {
+          name: fName.value,
+          portionG: fPortion.value,
+          kcal: fKcal.value,
+          carb: fCarb.value,
+          prot: fProt.value,
+          fat: fFat.value,
+          fiber: fFiber.value,
+          sodium: fSodium.value,
+        };
+        const food = {
+          ...normalizeFood(raw),
+          id: editFoodId.value || "custom-" + Date.now(),
+        };
+        const ix = state.customFoods.findIndex((x) => x.id === food.id);
+        if (ix >= 0) state.customFoods[ix] = food;
+        else state.customFoods.push(food);
+        save();
+        e.target.reset();
+        editFoodId.value = "";
+        clearLabelPhoto();
+        renderCatalog();
+        renderFoodOptions();
+      }
+      function editFood(id) {
+        const f = state.customFoods.find((x) => x.id === id);
+        if (!f) return;
+        editFoodId.value = f.id;
+        fName.value = f.name;
+        fPortion.value = 100;
+        fKcal.value = f.kcal;
+        fCarb.value = f.carb;
+        fProt.value = f.prot;
+        fFat.value = f.fat;
+        fFiber.value = f.fiber;
+        fSodium.value = f.sodium || 0;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      function deleteFood(id) {
+        if (!confirm("Apagar este alimento próprio?")) return;
+        state.customFoods = state.customFoods.filter((f) => f.id !== id);
+        save();
+        renderCatalog();
+        renderFoodOptions();
+      }
+      function exportCatalog() {
+        const blob = new Blob(
+            [JSON.stringify({ version: 1, foods: state.customFoods }, null, 2)],
+            { type: "application/json" },
+          ),
+          a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "nutricalc-catalogo.json";
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+      function importCatalog(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > MAX_IMPORT_BYTES) {
+          e.target.value = "";
+          return alert("Arquivo muito grande. Importe um catálogo JSON de até 1 MB.");
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const imported = sanitizeCatalogImport(JSON.parse(reader.result));
+            if (!imported) throw Error();
+            if (state.customFoods.length + imported.length > MAX_CUSTOM_FOODS) {
+              alert(`O catálogo pode ter no máximo ${MAX_CUSTOM_FOODS} alimentos. Exporte ou apague itens antes de importar.`);
+              return;
+            }
+            state.customFoods = [
+              ...state.customFoods.filter(
+                (f) => !imported.some((i) => i.id === f.id),
+              ),
+              ...imported,
+            ];
+            save();
+            renderCatalog();
+            renderFoodOptions();
+            alert(`${imported.length} alimento(s) importado(s).`);
+          } catch {
+            alert(
+              "Arquivo inválido. Selecione um backup do catálogo NutriCalc.",
+            );
+          }
+          e.target.value = "";
+        };
+        reader.readAsText(file);
+      }
+      function calculateTMB() {
+        const p = {
+          sex: tmbGender.value,
+          age: Number(tmbAge.value),
+          weight: Number(tmbWeight.value),
+          height: Number(tmbHeight.value),
+          activity: Number(tmbActivity.value),
+          goal: tmbGoal.value,
+        };
+        if (!p.age || !p.weight || !p.height)
+          return alert("Preencha idade, peso e altura.");
+        const e = estimatePlan(p);
+        state.tmb = e.kcal;
+        save();
+        resTmbValue.textContent = `${e.kcal} kcal/dia`;
+        resTmbDesc.textContent =
+          "Estimativa ajustada ao nível de atividade e objetivo (uso educativo).";
+        tmbResult.classList.remove("hidden");
+      }
+      function downloadPDF() {
+        if (requiresProfessionalReview(state.profile))
+          return alert(
+            "PDF de plano indisponível: procure avaliação profissional.",
+          );
+        if (!window.jspdf)
+          return alert(
+            "A biblioteca de PDF não carregou. Verifique sua conexão e tente novamente.",
+          );
+        const { jsPDF } = window.jspdf,
+          doc = new jsPDF({ unit: "mm", format: "a4" }),
+          p = state.profile,
+          e = Object.keys(p).length ? estimatePlan(p) : null;
+        let y = 0;
+        const colors = {
+          primary: [4, 120, 87],
+          ink: [23, 32, 51],
+          muted: [82, 98, 122],
+          soft: [236, 253, 245],
+          line: [220, 228, 236],
+        };
+        const header = () => {
+          doc.setFillColor(...colors.primary);
+          doc.rect(0, 0, 210, 28, "F");
+          doc.setFillColor(255, 255, 255);
+          doc.circle(17, 14, 7, "F");
+          doc.setTextColor(...colors.primary);
+          doc.setFontSize(10);
+          doc.text("N", 14.1, 17.3);
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(17);
+          doc.text("NutriCalc", 29, 13);
+          doc.setFontSize(7.5);
+          doc.text("PLANO SEMANAL • ORGANIZAÇÃO EDUCATIVA", 29, 18.5);
+          doc.setDrawColor(255, 255, 255);
+          doc.setLineWidth(0.35);
+          doc.line(29, 21.5, 195, 21.5);
+          doc.setTextColor(...colors.ink);
+          y = 39;
+        };
+        const page = () => {
+          doc.addPage();
+          header();
+        };
+        const line = (text, size = 9, indent = 15, color = colors.ink) => {
+          doc.setTextColor(...color);
+          doc.setFontSize(size);
+          const lines = doc.splitTextToSize(String(text), 180 - (indent - 15));
+          if (y + lines.length * (size * 0.52) > 279) page();
+          doc.text(lines, indent, y);
+          y += lines.length * (size * 0.52) + 2.4;
+        };
+        const heading = (text) => {
+          if (y > 260) page();
+          doc.setFillColor(...colors.soft);
+          doc.roundedRect(15, y - 6, 180, 10, 2, 2, "F");
+          doc.setTextColor(...colors.primary);
+          doc.setFontSize(11);
+          doc.text(text.toUpperCase(), 19, y + 0.7);
+          doc.setTextColor(...colors.ink);
+          y += 14;
+        };
+        const card = (x, top, width, height, title, value, note = "") => {
+          const compact = height < 24;
+          doc.setDrawColor(...colors.line);
+          doc.setFillColor(255, 255, 255);
+          doc.roundedRect(x, top, width, height, 3, 3, "FD");
+          doc.setTextColor(...colors.muted);
+          doc.setFontSize(7);
+          doc.text(title.toUpperCase(), x + 4, top + (compact ? 5 : 6));
+          doc.setTextColor(...colors.ink);
+          doc.setFontSize(compact ? 10 : 12);
+          doc.text(String(value), x + 4, top + (compact ? 12 : 15));
+          if (note) {
+            doc.setTextColor(...colors.muted);
+            doc.setFontSize(compact ? 6.2 : 6.7);
+            doc.text(note, x + 4, top + (compact ? 18 : height - 4));
+          }
+        };
+        header();
+        doc.setTextColor(...colors.ink);
+        doc.setFontSize(24);
+        doc.text("Seu plano alimentar", 15, y);
+        doc.setFontSize(10);
+        doc.setTextColor(...colors.muted);
+        doc.text("organização da sua semana", 15, y + 7);
+        y += 20;
+        doc.setDrawColor(...colors.line);
+        doc.setFillColor(248, 250, 252);
+        doc.roundedRect(15, y - 5, 180, 15, 3, 3, "FD");
+        line(
+          "Material de organização alimentar. As estimativas são educativas e não substituem avaliação profissional.",
+          8.5,
+          20,
+          colors.muted,
+        );
+        y += 4;
+        heading("Perfil e metas estimadas");
+        card(
+          15,
+          y,
+          42,
+          28,
+          "Meta diária",
+          e ? `${e.kcal} kcal` : "—",
+          "estimativa educativa",
+        );
+        card(
+          61,
+          y,
+          42,
+          28,
+          "Proteínas",
+          e ? `${e.macros.protein} g` : "—",
+          "meta estimada",
+        );
+        card(
+          107,
+          y,
+          42,
+          28,
+          "Carboidratos",
+          e ? `${e.macros.carbs} g` : "—",
+          "meta estimada",
+        );
+        card(
+          153,
+          y,
+          42,
+          28,
+          "Gorduras",
+          e ? `${e.macros.fat} g` : "—",
+          "meta estimada",
+        );
+        y += 35;
+        line(
+          `Perfil: ${p.age || "não informado"} anos • ${p.weight || "—"} kg • ${p.height || "—"} cm`,
+          8.5,
+          15,
+          colors.muted,
+        );
+        line(
+          `Objetivo: ${goalLabel(p.goal)} • Preferências: ${p.preferences || "não informadas"}`,
+          8.5,
+          15,
+          colors.muted,
+        );
+        heading("Visão geral da semana");
+        const mealLimit = Number(p.mealCount) || 5,
+          weekTotals = totals(state.weeklyMeals.flat(2));
+        const overview = buildWeeklyOverview(
+          state.weeklyMeals.map((day) => day.slice(0, mealLimit)),
+        );
+        overview.forEach((day, index) => {
+          const column = index % 2,
+            row = Math.floor(index / 2),
+            x = 15 + column * 92,
+            top = y + row * 25;
+          card(
+            x,
+            top,
+            88,
+            22,
+            weekDays[index],
+            day.items ? `${day.kcal} kcal` : "Sem registros",
+            day.items
+              ? `${day.items} item(ns) • P ${day.prot} g • C ${day.carb} g`
+              : "",
+          );
+        });
+        y += 110;
+        line(
+          `Semana: ${round(weekTotals.kcal)} kcal registradas • ${buildWeeklyShoppingList(state.weeklyMeals.map((day) => day.slice(0, mealLimit))).length} alimento(s) na lista de compras.`,
+          8.5,
+          15,
+          colors.muted,
+        );
+        page();
+        weekDays.forEach((day, dayIndex) => {
+          heading(day);
+          const dayMeals = state.weeklyMeals[dayIndex] || blankDay(),
+            visibleMeals = dayMeals.slice(0, Number(p.mealCount) || 5),
+            dayItems = visibleMeals.flat();
+          if (!dayItems.length) {
+            line("Sem refeições registradas.", 10);
+            return;
+          }
+          visibleMeals.forEach((meal, mealIndex) => {
+            line(getMealNames()[mealIndex], 10);
+            if (!meal.length) {
+              line("Sem refeições registradas.", 9, 20);
+              return;
+            }
+            meal.forEach((item) =>
+              line(
+                `• ${item.name} — ${round(item.qty)} g (${round(item.kcal)} kcal)`,
+                9,
+                20,
+              ),
+            );
+          });
+          const t = totals(dayItems);
+          line(
+            `Total do dia: ${round(t.kcal)} kcal | P ${round(t.prot)} g | C ${round(t.carb)} g | G ${round(t.fat)} g | Fibras ${round(t.fiber)} g`,
+            9,
+          );
+        });
+        heading("Lista de compras semanal");
+        const shopping = buildWeeklyShoppingList(
+          state.weeklyMeals.map((day) =>
+            day.slice(0, Number(p.mealCount) || 5),
+          ),
+        );
+        if (shopping.length)
+          shopping.forEach((item) => line(`• ${item.name}: ${item.qty} g`, 9));
+        else line("Sem alimentos registrados para a semana.", 9);
+        if (y > 255) page();
+        line(
+          "Aviso de segurança: confira rótulos, alergênicos e suas necessidades individuais. Este documento é somente educativo e organizacional.",
+          8,
+        );
+        const pages = doc.getNumberOfPages();
+        for (let i = 1; i <= pages; i++) {
+          doc.setPage(i);
+          doc.setTextColor(100, 116, 139);
+          doc.setFontSize(7);
+          doc.text(
+            `NutriCalc • plano semanal educativo • página ${i}/${pages}`,
+            15,
+            290,
+          );
+          doc.text("Suporte: atlasforcomsoc@gmail.com", 195, 290, {
+            align: "right",
+          });
+        }
+        doc.save("nutricalc-plano-semanal-educativo.pdf");
+      }
+      function fillProfile() {
+        const p = state.profile || {};
+        pSex.value = p.sex || "female";
+        pAge.value = p.age || "";
+        pWeight.value = p.weight || "";
+        pHeight.value = p.height || "";
+        pActivity.value = p.activity || 1.55;
+        pGoal.value = p.goal || "maintain";
+        pMealCount.value = p.mealCount || 5;
+        pPreferences.value = p.preferences || "";
+      }
+      function init() {
+        load();
+        fillProfile();
+        document
+          .getElementById("profileForm")
+          .addEventListener("submit", saveProfile);
+        document
+          .getElementById("foodForm")
+          .addEventListener("submit", saveFood);
+        document
+          .getElementById("mealNameForm")
+          .addEventListener("submit", saveMealNames);
+        document
+          .getElementById("labelPhotoInput")
+          .addEventListener("change", selectLabelPhoto);
+        document.getElementById("brandHomeButton").addEventListener("click", () => showSection("planner"));
+        document.querySelectorAll("[data-section-nav]").forEach((button) =>
+          button.addEventListener("click", () => showSection(button.dataset.sectionNav)),
+        );
+        document.getElementById("pdfButton").addEventListener("click", downloadPDF);
+        document.getElementById("editMealNamesButton").addEventListener("click", toggleMealNameEditor);
+        document.getElementById("closeMealNamesButton").addEventListener("click", toggleMealNameEditor);
+        document.getElementById("foodSearch").addEventListener("input", renderFoodOptions);
+        document.getElementById("addMealItemButton").addEventListener("click", addItem);
+        document.getElementById("exportCatalogButton").addEventListener("click", exportCatalog);
+        document.getElementById("importInput").addEventListener("change", importCatalog);
+        document.getElementById("runOcrButton").addEventListener("click", runLabelOcr);
+        document.getElementById("catalogSearch").addEventListener("input", renderCatalog);
+        document.getElementById("calculateTmbButton").addEventListener("click", calculateTMB);
+        document
+          .getElementById("clearDataButton")
+          .addEventListener("click", clearAllLocalData);
+        renderDays();
+        renderTabs();
+        renderFoodOptions();
+        renderMeal();
+        renderDaily();
+        renderCatalog();
+      }
+      init();
+    </script>
+  </body>
+</html>

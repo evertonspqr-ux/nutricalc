@@ -1,0 +1,252 @@
+:root {
+  --nc-ink: #172033;
+  --nc-muted: #52627a;
+  --nc-line: #dce4ec;
+  --nc-canvas: #f6f8fa;
+  --nc-surface: #ffffff;
+  --nc-primary: #047857;
+  --nc-primary-hover: #065f46;
+  --nc-primary-soft: #ecfdf5;
+  --nc-focus: #2563eb;
+  --nc-warning: #9a6700;
+  --nc-warning-soft: #fffbeb;
+  --nc-radius: 14px;
+  --nc-shadow: 0 1px 2px rgb(15 23 42 / 4%), 0 8px 24px rgb(15 23 42 / 5%);
+}
+
+html {
+  background: var(--nc-canvas);
+}
+body {
+  background: var(--nc-canvas);
+  color: var(--nc-ink);
+}
+.app-header {
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 12%),
+    0 6px 18px rgb(6 78 59 / 18%);
+}
+.brand-mark {
+  align-items: center;
+  background: #fff;
+  border-radius: 9px;
+  color: var(--nc-primary);
+  display: inline-flex;
+  font-size: 0.86rem;
+  font-weight: 800;
+  height: 30px;
+  justify-content: center;
+  letter-spacing: -0.04em;
+  width: 30px;
+}
+.app-main {
+  padding-bottom: 3rem;
+}
+.notice {
+  border-left: 0;
+  border-radius: var(--nc-radius);
+  color: #713f12;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 80%);
+}
+.notice strong {
+  color: #78350f;
+}
+
+button,
+input,
+select {
+  min-height: 42px;
+}
+button {
+  transition:
+    background-color 160ms ease-out,
+    border-color 160ms ease-out,
+    color 160ms ease-out,
+    box-shadow 160ms ease-out,
+    transform 160ms ease-out;
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+label:has(input[type="file"]):focus-within {
+  outline: 3px solid color-mix(in srgb, var(--nc-focus) 55%, transparent);
+  outline-offset: 2px;
+}
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+button:disabled {
+  cursor: not-allowed;
+}
+input,
+select {
+  border-color: #cbd5e1;
+  color: var(--nc-ink);
+}
+input:hover,
+select:hover {
+  border-color: #94a3b8;
+}
+input:focus,
+select:focus {
+  border-color: var(--nc-primary);
+  box-shadow: 0 0 0 3px rgb(4 120 87 / 13%);
+}
+
+#section-planner > .rounded-2xl {
+  border-color: #bfe8d6;
+}
+#dailyCards > div {
+  border-color: var(--nc-line);
+  box-shadow: 0 1px 0 rgb(15 23 42 / 2%);
+}
+#dailyCards > div p:first-child {
+  color: var(--nc-muted);
+  font-weight: 650;
+  letter-spacing: 0.025em;
+}
+#dailyCards > div strong {
+  letter-spacing: -0.02em;
+}
+#mealTabs button {
+  min-height: 48px;
+}
+.tab-active {
+  border-bottom-color: var(--nc-primary);
+  color: var(--nc-primary-hover);
+}
+#mealBody tr:hover {
+  background: #f8fafc;
+}
+#mealBody th {
+  color: var(--nc-ink);
+  font-weight: 650;
+}
+#mealFooter {
+  color: #064e3b;
+}
+
+#dayTabs button[aria-selected="false"] {
+  background: #fff;
+  border-color: #cde8dc;
+  color: #065f46;
+}
+#dayTabs button[aria-selected="false"]:hover {
+  background: #ecfdf5;
+  border-color: #6ee7b7;
+}
+#dayTabs button[aria-selected="true"] {
+  box-shadow: 0 1px 2px rgb(4 120 87 / 20%);
+}
+
+#section-catalog > div,
+#section-profile > div,
+#section-tmb > div,
+#section-planner > div.bg-white {
+  border-color: var(--nc-line);
+  box-shadow: var(--nc-shadow);
+}
+#section-catalog .bg-emerald-50 {
+  border-color: #a7e4c9;
+}
+#section-catalog .bg-emerald-50 p {
+  color: #14532d;
+}
+#labelPhotoPreview {
+  background: #fff;
+  object-fit: contain;
+}
+.safety-advisory {
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 10px;
+  color: #713f12;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  padding: 0.85rem 1rem;
+}
+.safety-advisory strong {
+  color: #78350f;
+}
+
+.safety-options {
+  gap: 0.6rem;
+}
+.safety-options label {
+  align-items: center;
+  border: 1px solid #d7e1ec;
+  border-radius: 10px;
+  color: var(--nc-ink);
+  cursor: pointer;
+  display: flex;
+  font-weight: 600;
+  gap: 0.65rem;
+  min-height: 48px;
+  padding: 0.7rem 0.8rem;
+}
+.safety-options label:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+.safety-options input[type="checkbox"] {
+  accent-color: var(--nc-primary);
+  block-size: 1.1rem;
+  flex: 0 0 1.1rem;
+  inline-size: 1.1rem;
+  margin: 0;
+  min-height: 0;
+}
+.safety-options label:has(input:checked) {
+  background: #ecfdf5;
+  border-color: #34d399;
+  color: #065f46;
+}
+
+@media (max-width: 640px) {
+  .app-header > div {
+    align-items: flex-start;
+  }
+  .app-header nav {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 2px;
+  }
+  .app-header nav button {
+    white-space: nowrap;
+  }
+  #dailyCards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  #dailyCards > div:last-child {
+    grid-column: span 2;
+  }
+  #dayTabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+  #dayTabs button {
+    width: 100%;
+  }
+  #mealTabs button {
+    flex: 0 0 auto;
+  }
+  #section-planner > .flex {
+    align-items: stretch;
+  }
+  #pdfButton {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
